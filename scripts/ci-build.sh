@@ -6,6 +6,7 @@ rev=${1:?usage: ci-build.sh UPSTREAM_COMMIT EVIDENCE_DIRECTORY}
 evidence=${2:?usage: ci-build.sh UPSTREAM_COMMIT EVIDENCE_DIRECTORY}
 [[ $rev =~ ^[0-9a-f]{40}$ ]] || { echo 'Expected a full upstream commit' >&2; exit 2; }
 root=$(git rev-parse --show-toplevel)
+tooling=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 mkdir -p "$evidence"
 evidence=$(realpath "$evidence")
 snapshot=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/hyprexpo-ci.XXXXXX")
@@ -15,7 +16,8 @@ cd "$snapshot"
 
 {
     printf 'plugin_commit=%s\n' "$(git -C "$root" rev-parse HEAD)"
-    printf 'plugin_tree=%s\n' "$(git -C "$root" rev-parse HEAD^{tree})"
+    printf 'plugin_tree=%s\n' "$(git -C "$root" rev-parse 'HEAD^{tree}')"
+    printf 'tooling_commit=%s\n' "$(git -C "$tooling" rev-parse HEAD)"
     printf 'hyprland_commit=%s\n' "$rev"
     printf 'run_url=%s/%s/actions/runs/%s\n' "${GITHUB_SERVER_URL:-local}" "${GITHUB_REPOSITORY:-local}" "${GITHUB_RUN_ID:-local}"
     nix --version
@@ -38,6 +40,10 @@ Path("flake.lock").write_text(json.dumps(json.load(open(sys.argv[1]))["locks"], 
 PY
 cp flake.lock "$evidence/flake.lock"
 sha256sum flake.lock >> "$evidence/provenance.txt"
+
+source "$tooling/ci-hyprland-cache.sh"
+configure_hyprland_cache
+prepare_hyprland_cache "$snapshot" "$evidence" "$tooling"
 
 # Nix store paths bind source, generated headers and dependencies together.
 # Establish an output first: --rebuild refuses never-built derivations. Then
