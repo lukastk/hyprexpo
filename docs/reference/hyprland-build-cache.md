@@ -40,6 +40,10 @@ gh secret set BUNNY_CACHE_SIGNING_KEY --repo sandwichfarm/hyprexpo < cache-priva
 gh variable set BUNNY_CACHE_PUBLIC_KEY --repo sandwichfarm/hyprexpo < cache-public.key
 ```
 
+Alternatively, run `./scripts/configure-bunny-cache.sh`. It prompts for all
+five values, keeps secret prompts hidden, and sends secret values to `gh` on
+stdin. Pass `--repo OWNER/REPO` to target another repository.
+
 Keep the private key outside the checkout and secure or remove the temporary key
 file after recording it in the secret manager. Never put it in build artifacts.
 Nix's [file binary cache](https://releases.nixos.org/nix/nix-2.32.2/manual/store/types/local-binary-cache-store.html)
