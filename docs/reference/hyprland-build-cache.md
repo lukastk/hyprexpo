@@ -41,8 +41,9 @@ gh variable set BUNNY_CACHE_PUBLIC_KEY --repo sandwichfarm/hyprexpo < cache-publ
 ```
 
 Alternatively, run `./scripts/configure-bunny-cache.sh`. It prompts for all
-five values, keeps secret prompts hidden, and sends secret values to `gh` on
-stdin. Pass `--repo OWNER/REPO` to target another repository.
+five values, explains where to find each one (including signing-key generation),
+keeps secret prompts hidden, and sends secret values to `gh` on stdin.
+Pass `--repo OWNER/REPO` to target another repository.
 
 Keep the private key outside the checkout and secure or remove the temporary key
 file after recording it in the secret manager. Never put it in build artifacts.
