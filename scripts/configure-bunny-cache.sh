@@ -69,11 +69,12 @@ BUNNY_CACHE_PUBLIC_KEY
   Otherwise, with Nix installed, run these commands in another terminal:
 
     umask 077
-    cache_keys=$(mktemp -d)
-    nix-store --generate-binary-cache-key hyprexpo-hyprland-1 \
-      "$cache_keys/private.key" "$cache_keys/public.key"
+    cache_keys=$(mktemp -d) &&
+    NIX_REMOTE=dummy:// nix-store --generate-binary-cache-key hyprexpo-hyprland-1 \
+      "$cache_keys/private.key" "$cache_keys/public.key" &&
     printf 'Key files are in: %s\n' "$cache_keys"
 
+  NIX_REMOTE=dummy:// lets key generation run without access to /nix/store.
   Copy the contents of public.key below. Keep private.key for the final prompt.
   Enter the key contents, not the filename.
 EOF

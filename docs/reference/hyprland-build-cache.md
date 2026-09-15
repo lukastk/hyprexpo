@@ -35,7 +35,7 @@ Generate a signing pair on a trusted machine with Nix installed:
 
 ```bash
 umask 077
-nix-store --generate-binary-cache-key hyprexpo-hyprland-1 cache-private.key cache-public.key
+NIX_REMOTE=dummy:// nix-store --generate-binary-cache-key hyprexpo-hyprland-1 cache-private.key cache-public.key
 gh secret set BUNNY_CACHE_SIGNING_KEY --repo sandwichfarm/hyprexpo < cache-private.key
 gh variable set BUNNY_CACHE_PUBLIC_KEY --repo sandwichfarm/hyprexpo < cache-public.key
 ```
@@ -44,6 +44,9 @@ Alternatively, run `./scripts/configure-bunny-cache.sh`. It prompts for all
 five values, explains where to find each one (including signing-key generation),
 keeps secret prompts hidden, and sends secret values to `gh` on stdin.
 Pass `--repo OWNER/REPO` to target another repository.
+
+`NIX_REMOTE=dummy://` allows key generation without initializing or writing to
+the system Nix store, so it also works when `/nix/store` is unavailable.
 
 Keep the private key outside the checkout and secure or remove the temporary key
 file after recording it in the secret manager. Never put it in build artifacts.
