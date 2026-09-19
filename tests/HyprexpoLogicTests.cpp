@@ -847,6 +847,11 @@ int main() {
     expect(numberKeyModeFromString("passthrough") == ENumberKeyMode::Passthrough, "passthrough number-key mode parses");
     expect(numberKeyModeFromString("invalid") == ENumberKeyMode::Workspace, "invalid number-key mode safely preserves the default");
     expect(HyprexpoConfig::DRAG_DROP_ENABLE_DEFAULT == 1, "drag and drop is enabled by default");
+    expect(std::string{HyprexpoConfig::OVERVIEW_MODE_DEFAULT} == "auto", "overview mode defaults to detection-based auto behavior");
+    expect(overviewModePreferenceFromString("auto") == EOverviewModePreference::Auto, "explicit auto overview mode parses");
+    expect(overviewModePreferenceFromString(" GRID ") == EOverviewModePreference::Grid, "grid overview mode is case-insensitive and trimmed");
+    expect(overviewModePreferenceFromString("") == EOverviewModePreference::Auto, "empty overview mode config falls back to auto");
+    expect(overviewModePreferenceFromString("scrolling") == EOverviewModePreference::Auto, "unrecognized overview mode values safely preserve auto behavior");
 
     const auto boundedGapFill = expandDynamicWorkspaceIDs({2, 4}, true, 64);
     expect(boundedGapFill.has_value(), "bounded fill_gaps range is accepted");
