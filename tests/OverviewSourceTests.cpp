@@ -907,6 +907,14 @@ int main() {
     expectContains(sessionSource, "return nullptr", "detected scrolling initialization failure returns no session");
     expectAbsent(sessionSource, "using grid fallback", "detected scrolling never silently falls back to grid");
     expectOrder(sessionSource, "if (detectedScrolling)", "return std::make_unique<COverview>", "grid construction is reachable only after the detected-scrolling branch");
+
+    expectContains(configSource, "plugin:hyprexpo:overview_mode", "overview mode opt-out configuration is registered");
+    expectContains(configSource, "HyprexpoConfig::OVERVIEW_MODE_DEFAULT", "overview mode configuration has a compatibility default");
+    expectContains(sessionSource, "plugin:hyprexpo:overview_mode", "session factory reads the overview mode configuration");
+    expectContains(sessionSource, "overviewModePreferenceFromString", "session factory parses the overview mode configuration through the shared pure parser");
+    expectContains(sessionSource, "EOverviewModePreference::Grid", "session factory checks for the forced-grid overview mode preference");
+    expectOrder(sessionSource, "plugin:hyprexpo:overview_mode", "detectedScrolling", "overview mode is read before scrolling layout detection runs");
+    expectOrder(sessionSource, "forcedGrid", "workspaceUsesScrollingLayout(startedOn)", "a forced-grid preference can short-circuit scrolling layout detection");
     expectContains(dispatchersSource, "createOverview(monitor)", "dispatcher creates sessions through the monitor registry");
     expectContains(source, "createOverviewSession(monitor->m_activeWorkspace, monitor, swipe)", "registry passes the explicit monitor to the sole session factory");
     expectContains(dispatchersSource, "failed to initialize native scrolling overview", "dispatcher reports fail-closed scrolling creation");

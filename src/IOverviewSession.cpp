@@ -1,5 +1,6 @@
 #include "IOverviewSession.hpp"
 
+#include "HyprexpoLogic.hpp"
 #include "Overview.hpp"
 #include "ScrollingLayoutAdapter.hpp"
 #include "ScrollingOverview.hpp"
@@ -27,7 +28,10 @@ std::unique_ptr<IOverviewSession> createOverviewSession(const PHLWORKSPACE& star
     static std::atomic<uint64_t> nextGeneration = 1;
     const uint64_t generation = nextGeneration.fetch_add(1, std::memory_order_relaxed);
 
-    const bool detectedScrolling = Hyprexpo::Scrolling::workspaceUsesScrollingLayout(startedOn);
+    static auto const* POVERVIEWMODE = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, "plugin:hyprexpo:overview_mode")->getDataStaticPtr();
+    const bool forcedGrid = Hyprexpo::overviewModePreferenceFromString(*POVERVIEWMODE) == Hyprexpo::EOverviewModePreference::Grid;
+
+    const bool detectedScrolling = !forcedGrid && Hyprexpo::Scrolling::workspaceUsesScrollingLayout(startedOn);
     if (detectedScrolling) {
         const auto snapshot = Hyprexpo::Scrolling::snapshotWorkspace(startedOn);
         const bool emptyScrolling = startedOn && startedOn->getWindowCount() <= 0 && snapshot.failure == Hyprexpo::Scrolling::ESnapshotFailure::MissingScrollingData;
