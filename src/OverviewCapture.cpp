@@ -127,7 +127,7 @@ class CMonitorStateGuard {
 bool preparePreviewFramebuffer(const SP<Render::IFramebuffer>& framebuffer, const PHLMONITOR& monitor, int width, int height) {
     if (!framebuffer)
         return false;
-    // Fake rendering writes working-space pixels, not output-encoded pixels.
+    // Capture in the monitor's working color space.
     const auto format = monitor->useFP16() ? DRM_FORMAT_ABGR16161616F : framebufferFormatWithAlpha(monitor->m_output->state->state().drmFormat);
     return prepareFramebuffer(*framebuffer, width, height, format, monitor->workBufferImageDescription());
 }

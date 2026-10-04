@@ -1,6 +1,3 @@
-// Exercise the production preparation policy without a compositor. The fake
-// models Hyprland 0.56.2 IFramebuffer::alloc/setImageDescription: alloc caches
-// equal size+format, replaces textures on changes, and retries failed allocation.
 #include "../src/PreviewFramebuffer.hpp"
 
 #include <iostream>
@@ -18,6 +15,7 @@ struct STexture {
     std::shared_ptr<int> description;
 };
 
+// Models Hyprland's allocation cache and texture metadata.
 struct SFramebuffer {
     struct SSize {
         int x = 0, y = 0;
@@ -71,8 +69,6 @@ void expectDescription(const SFramebuffer& framebuffer, const std::shared_ptr<in
 int main() {
     using Hyprexpo::Capture::prepareFramebuffer;
 
-    // Both SDR neighbors and the issue's HDR/FP16 case carry the exact source
-    // description so the renderer does not fall back to default sRGB.
     for (const auto format : {SDR8, SDR10, FP16}) {
         SFramebuffer framebuffer;
         const auto description = format == FP16 ? LINEAR_HDR : SRGB;
