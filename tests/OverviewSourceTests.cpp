@@ -911,6 +911,23 @@ int main() {
     expectContains(configSource, "plugin:hyprexpo:overview_mode", "overview mode opt-out configuration is registered");
     expectContains(configSource, "HyprexpoConfig::OVERVIEW_MODE_DEFAULT", "overview mode configuration has a compatibility default");
     expectContains(sessionSource, "plugin:hyprexpo:overview_mode", "session factory reads the overview mode configuration");
+    expectContains(sessionSource, "#include \"HyprlandConfigCompat.hpp\"", "session factory includes the shared configuration compatibility boundary");
+    const auto sessionFactory = extractFunction(sessionSource, "std::unique_ptr<IOverviewSession> createOverviewSession(");
+    expectContains(sessionFactory, "const std::string overviewMode = CompatHyprlandAPI::stringValue(\"plugin:hyprexpo:overview_mode\");",
+                   "session factory obtains an owned overview mode through the safe string reader");
+    expectContains(sessionFactory, "overviewModePreferenceFromString(overviewMode)", "session factory parses the owned overview mode value");
+    const auto modeLookupStart = sessionFactory.find("const uint64_t generation =");
+    const auto modeLookupEnd = sessionFactory.find("const bool detectedScrolling");
+    expect(modeLookupStart != std::string::npos && modeLookupEnd != std::string::npos && modeLookupStart < modeLookupEnd,
+           "overview mode lookup lies between generation allocation and layout detection");
+    if (modeLookupStart != std::string::npos && modeLookupEnd != std::string::npos && modeLookupStart < modeLookupEnd) {
+        const auto modeLookup = sessionFactory.substr(modeLookupStart, modeLookupEnd - modeLookupStart);
+        expectAbsent(modeLookup, "static ", "overview mode is read afresh for every session");
+        expectAbsent(modeLookup, "getDataStaticPtr", "overview mode lookup does not retain a borrowed configuration pointer");
+    }
+    expectContains(extractFunction(source, "static Config::STRING stringDefault("),
+                   "{\"plugin:hyprexpo:overview_mode\", HyprexpoConfig::OVERVIEW_MODE_DEFAULT}",
+                   "missing overview mode config uses the shared auto default");
     expectContains(sessionSource, "overviewModePreferenceFromString", "session factory parses the overview mode configuration through the shared pure parser");
     expectContains(sessionSource, "EOverviewModePreference::Grid", "session factory checks for the forced-grid overview mode preference");
     expectOrder(sessionSource, "plugin:hyprexpo:overview_mode", "detectedScrolling", "overview mode is read before scrolling layout detection runs");
