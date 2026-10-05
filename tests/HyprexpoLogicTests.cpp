@@ -959,6 +959,35 @@ int main() {
     expect(decodeConfigString(&nullConfigString, false, "up") == "up", "a null inner pointer falls back to the default");
     expect(decodeConfigString(nullptr, false, "up") == "up", "an absent config value falls back to the default");
 
+    std::string rawOverviewStorage = "auto";
+    const char* rawOverviewMode = rawOverviewStorage.c_str();
+    std::string stdOverviewMode = "auto";
+    std::string* stdOverviewPtr = &stdOverviewMode;
+    const auto rawOverviewCopy = decodeConfigString(&rawOverviewMode, false, HyprexpoConfig::OVERVIEW_MODE_DEFAULT);
+    const auto stdOverviewCopy = decodeConfigString(&stdOverviewPtr, true, HyprexpoConfig::OVERVIEW_MODE_DEFAULT);
+    expect(overviewModePreferenceFromString(rawOverviewCopy) == EOverviewModePreference::Auto, "raw overview mode decodes to auto");
+    expect(overviewModePreferenceFromString(stdOverviewCopy) == EOverviewModePreference::Auto, "std::string overview mode decodes to auto");
+    for (const char* mode : {"grid", "auto"}) {
+        rawOverviewStorage = mode;
+        rawOverviewMode = rawOverviewStorage.c_str();
+        stdOverviewMode = mode;
+        const auto expected = stdOverviewMode == "grid" ? EOverviewModePreference::Grid : EOverviewModePreference::Auto;
+        expect(overviewModePreferenceFromString(decodeConfigString(&rawOverviewMode, false, HyprexpoConfig::OVERVIEW_MODE_DEFAULT)) == expected,
+               "fresh raw overview mode reads observe auto-to-grid-to-auto changes");
+        expect(overviewModePreferenceFromString(decodeConfigString(&stdOverviewPtr, true, HyprexpoConfig::OVERVIEW_MODE_DEFAULT)) == expected,
+               "fresh std::string overview mode reads observe auto-to-grid-to-auto changes");
+        expect(rawOverviewCopy == "auto" && stdOverviewCopy == "auto", "decoded overview modes own their strings after backend mutation");
+    }
+    rawOverviewMode = nullptr;
+    stdOverviewPtr = nullptr;
+    expect(overviewModePreferenceFromString(decodeConfigString(&rawOverviewMode, false, HyprexpoConfig::OVERVIEW_MODE_DEFAULT)) == EOverviewModePreference::Auto,
+           "a null raw overview mode pointer falls back to auto");
+    expect(overviewModePreferenceFromString(decodeConfigString(&stdOverviewPtr, true, HyprexpoConfig::OVERVIEW_MODE_DEFAULT)) == EOverviewModePreference::Auto,
+           "a null std::string overview mode pointer falls back to auto");
+    for (bool stringObject : {false, true})
+        expect(overviewModePreferenceFromString(decodeConfigString(nullptr, stringObject, HyprexpoConfig::OVERVIEW_MODE_DEFAULT)) == EOverviewModePreference::Auto,
+               "an absent overview mode reply falls back to auto for either representation");
+
     const auto gestureDisabled = evaluateGestureSync({.fingers = 0, .direction = "up", .directionValid = true});
     expect(!gestureDisabled.registerGesture, "gesture_fingers = 0 registers nothing");
     expect(gestureDisabled.error.empty(), "gesture_fingers = 0 is opt-out, not a misconfiguration");
